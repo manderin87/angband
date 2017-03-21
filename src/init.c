@@ -792,6 +792,28 @@ static enum parser_error parse_trap_appear(struct parser *p) {
     return PARSE_ERROR_NONE;
 }
 
+static enum parser_error parse_trap_visibility(struct parser *p) {
+    struct trap_kind *t = parser_priv(p);
+	char *s;
+	dice_t *dice;
+
+    if (!t)
+		return PARSE_ERROR_MISSING_RECORD_HEADER;
+
+	/* Get a rewritable string */
+	s = string_make(parser_getstr(p, "visibility"));
+
+	dice = dice_new();
+	if (!dice_parse_string(dice, s)) {
+		dice_free(dice);
+		return PARSE_ERROR_NOT_RANDOM;
+	}
+	dice_random_value(dice, &t->power);
+
+	dice_free(dice);
+    return PARSE_ERROR_NONE;
+}
+
 static enum parser_error parse_trap_flags(struct parser *p) {
     char *flags;
     struct trap_kind *t = parser_priv(p);
@@ -1120,6 +1142,7 @@ struct parser *init_parse_trap(void) {
     parser_reg(p, "name sym name str desc", parse_trap_name);
     parser_reg(p, "graphics char glyph sym color", parse_trap_graphics);
     parser_reg(p, "appear uint rarity uint mindepth uint maxnum", parse_trap_appear);
+    parser_reg(p, "visibility str visibility", parse_trap_visibility);
     parser_reg(p, "flags ?str flags", parse_trap_flags);
 	parser_reg(p, "effect sym eff ?sym type ?int xtra", parse_trap_effect);
 	parser_reg(p, "param int p2 ?int p3", parse_trap_param);
@@ -1692,6 +1715,14 @@ static enum parser_error parse_p_race_skill_stealth(struct parser *p) {
 	return PARSE_ERROR_NONE;
 }
 
+static enum parser_error parse_p_race_skill_search(struct parser *p) {
+	struct player_race *r = parser_priv(p);
+	if (!r)
+		return PARSE_ERROR_MISSING_RECORD_HEADER;
+	r->r_skills[SKILL_SEARCH] = parser_getint(p, "search");
+	return PARSE_ERROR_NONE;
+}
+
 static enum parser_error parse_p_race_skill_melee(struct parser *p) {
 	struct player_race *r = parser_priv(p);
 	if (!r)
@@ -1840,6 +1871,7 @@ struct parser *init_parse_p_race(void) {
 	parser_reg(p, "skill-device int device", parse_p_race_skill_device);
 	parser_reg(p, "skill-save int save", parse_p_race_skill_save);
 	parser_reg(p, "skill-stealth int stealth", parse_p_race_skill_stealth);
+	parser_reg(p, "skill-search int search", parse_p_race_skill_search);
 	parser_reg(p, "skill-melee int melee", parse_p_race_skill_melee);
 	parser_reg(p, "skill-shoot int shoot", parse_p_race_skill_shoot);
 	parser_reg(p, "skill-throw int throw", parse_p_race_skill_throw);
@@ -2062,6 +2094,15 @@ static enum parser_error parse_class_skill_stealth(struct parser *p) {
 		return PARSE_ERROR_MISSING_RECORD_HEADER;
 	c->c_skills[SKILL_STEALTH] = parser_getint(p, "base");
 	c->x_skills[SKILL_STEALTH] = parser_getint(p, "incr");
+	return PARSE_ERROR_NONE;
+}
+
+static enum parser_error parse_class_skill_search(struct parser *p) {
+	struct player_class *c = parser_priv(p);
+	if (!c)
+		return PARSE_ERROR_MISSING_RECORD_HEADER;
+	c->c_skills[SKILL_SEARCH] = parser_getint(p, "base");
+	c->x_skills[SKILL_SEARCH] = parser_getint(p, "incr");
 	return PARSE_ERROR_NONE;
 }
 
@@ -2415,6 +2456,7 @@ struct parser *init_parse_class(void) {
 	parser_reg(p, "skill-device int base int incr", parse_class_skill_device);
 	parser_reg(p, "skill-save int base int incr", parse_class_skill_save);
 	parser_reg(p, "skill-stealth int base int incr", parse_class_skill_stealth);
+	parser_reg(p, "skill-search int base int incr", parse_class_skill_search);
 	parser_reg(p, "skill-melee int base int incr", parse_class_skill_melee);
 	parser_reg(p, "skill-shoot int base int incr", parse_class_skill_shoot);
 	parser_reg(p, "skill-throw int base int incr", parse_class_skill_throw);

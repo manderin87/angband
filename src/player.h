@@ -119,6 +119,7 @@ enum {
 	SKILL_DISARM_MAGIC,		/* Disarming - magical */
 	SKILL_DEVICE,			/* Magic Devices */
 	SKILL_SAVE,				/* Saving throw */
+	SKILL_SEARCH,			/* Searching ability */
 	SKILL_STEALTH,			/* Stealth factor */
 	SKILL_TO_HIT_MELEE,		/* To hit (normal) */
 	SKILL_TO_HIT_BOW,		/* To hit (shooting) */
@@ -504,6 +505,7 @@ struct player {
 
 	byte *spell_flags;			/* Spell flags */
 	byte *spell_order;			/* Spell order */
+	byte searching;		/* Currently searching */
 
 	char full_name[PLAYER_NAME_LEN];	/* Full name */
 	char died_from[80];					/* Cause of death */

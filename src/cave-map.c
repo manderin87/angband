@@ -217,6 +217,11 @@ void square_note_spot(struct chunk *c, int y, int x)
 	/* Make the player know precisely what is on this grid */
 	square_know_pile(c, y, x);
 
+	/* Notice traps */
+	if (square_issecrettrap(c, y, x)) {
+		square_reveal_trap(c, y, x, false, true);
+	}
+
 	if (square_isknown(c, y, x))
 		return;
 

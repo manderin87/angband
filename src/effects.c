@@ -145,9 +145,9 @@ static bool project_aimed(struct source origin,
 }
 
 /**
- * Apply the project() function to grids the player is touching
+ * Apply the project() function to grids around the player
  */
-static bool project_touch(int dam, int typ, bool aware,
+static bool project_touch(int dam, int rad, int typ, bool aware,
 						  const struct object *obj)
 {
 	int py = player->py;
@@ -155,7 +155,7 @@ static bool project_touch(int dam, int typ, bool aware,
 
 	int flg = PROJECT_GRID | PROJECT_KILL | PROJECT_HIDE | PROJECT_ITEM | PROJECT_THRU;
 	if (aware) flg |= PROJECT_AWARE;
-	return (project(source_player(), 1, py, px, dam, typ, flg, 0, 0, obj));
+	return (project(source_player(), rad, py, px, dam, typ, flg, 0, 0, obj));
 }
 
 /**
@@ -1324,7 +1324,7 @@ bool effect_handler_MAP_AREA(effect_handler_context_t *context)
 
 	return true;
 }
-#if 0
+
 /**
  * Detect traps around the player.  The height to detect above and below the
  * player is context->value.dice, the width either side of the player context->value.sides.
@@ -1360,7 +1360,7 @@ bool effect_handler_DETECT_TRAPS(effect_handler_context_t *context)
 			/* Detect traps */
 			if (square_isplayertrap(cave, y, x))
 				/* Reveal trap */
-				if (square_reveal_trap(cave, y, x, false))
+				if (square_reveal_trap(cave, y, x, true, false))
 					detect = true;
 
 			/* Scan all objects in the grid to look for traps on chests */
@@ -1430,8 +1430,8 @@ bool effect_handler_DETECT_DOORS(effect_handler_context_t *context)
 		for (x = x1; x < x2; x++) {
 			if (!square_in_bounds_fully(cave, y, x)) continue;
 
-			/* Detect non-secret doors */
-			if (square_isdoor(cave, y, x) && !square_issecretdoor(cave, y, x)) {
+			/* Detect secret doors */
+			if (square_issecretdoor(cave, y, x)) {
 				/* Memorize */
 				square_memorize(cave, y, x);
 				square_light_spot(cave, y, x);
@@ -1509,7 +1509,7 @@ bool effect_handler_DETECT_STAIRS(effect_handler_context_t *context)
 	context->ident = true;
 	return true;
 }
-#endif
+
 
 /**
  * Detect buried gold around the player.  The height to detect above and below
@@ -3786,7 +3786,8 @@ bool effect_handler_BOLT_AWARE(effect_handler_context_t *context)
 bool effect_handler_TOUCH(effect_handler_context_t *context)
 {
 	int dam = effect_calculate_value(context, true);
-	if (project_touch(dam, context->p1, false, context->obj))
+	int rad = context->p2 ? context->p2 : 1;
+	if (project_touch(dam, rad, context->p1, false, context->obj))
 		context->ident = true;
 	return true;
 }
@@ -3798,7 +3799,8 @@ bool effect_handler_TOUCH(effect_handler_context_t *context)
 bool effect_handler_TOUCH_AWARE(effect_handler_context_t *context)
 {
 	int dam = effect_calculate_value(context, true);
-	if (project_touch(dam, context->p1, context->aware, context->obj))
+	int rad = context->p2 ? context->p2 : 1;
+	if (project_touch(dam, rad, context->p1, context->aware, context->obj))
 		context->ident = true;
 	return true;
 }
